@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function TipCard({ tip, loading, category, difficulty }) {
+export default function TipCard({ tip, loading, category, difficulty, isSaved, onSave }) {
   if (loading) {
     return (
       <div className="tip-card tip-card--loading">
@@ -32,6 +32,14 @@ export default function TipCard({ tip, loading, category, difficulty }) {
           <h3 className="tip-card__category">{category?.nom}</h3>
           <span className="tip-card__difficulty">{difficulty}</span>
         </div>
+        <button
+          className={`tip-card__save ${isSaved ? 'tip-card__save--saved' : ''}`}
+          onClick={onSave}
+          aria-label={isSaved ? 'Ja desat' : 'Desar tip'}
+          title={isSaved ? 'Ja desat' : 'Desar tip'}
+        >
+          {isSaved ? '★' : '☆'}
+        </button>
       </div>
       <p className="tip-card__tip">{tip}</p>
     </div>

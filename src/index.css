@@ -219,6 +219,95 @@ body {
   color: var(--accent);
 }
 .tip-card__tip { color: var(--text); font-size: 0.95rem; line-height: 1.65; }
+.tip-card__save {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  line-height: 1;
+  padding: 0.25rem;
+  transition: color 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+.tip-card__save:hover { color: #f59e0b; transform: scale(1.2); }
+.tip-card__save--saved { color: #f59e0b; }
+
+/* Saved tips */
+.saved-tips { display: flex; flex-direction: column; gap: 0; }
+.saved-tips__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+.saved-tips__toggle:hover { border-color: var(--accent); }
+.saved-tips__count {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 20px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.saved-tips__arrow { margin-left: auto; color: var(--text-muted); font-size: 0.75rem; }
+.saved-tips__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 0.625rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.saved-tips__empty { color: var(--text-muted); font-size: 0.875rem; text-align: center; padding: 1rem 0; }
+.saved-tip-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.875rem 1rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.saved-tip-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-right: 1.5rem;
+}
+.saved-tip-card__meta { font-size: 0.72rem; }
+.saved-tip-card__text { font-size: 0.875rem; line-height: 1.55; color: var(--text); }
+.saved-tip-card__remove {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.saved-tip-card__remove:hover { color: var(--accent); background: rgba(233,69,96,0.1); }
 
 /* Notification settings */
 .notification-settings { display: flex; flex-direction: column; gap: 0.75rem; }

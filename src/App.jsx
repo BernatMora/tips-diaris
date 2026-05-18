@@ -4,9 +4,11 @@ import DifficultySelector from './components/DifficultySelector'
 import TipCard from './components/TipCard'
 import NotificationSettings from './components/NotificationSettings'
 import InstallPrompt from './components/InstallPrompt'
+import SavedTips from './components/SavedTips'
 import { CATEGORIES } from './utils/categories'
 import { generateTip } from './utils/api'
 import { useOfflineStorage } from './hooks/useOfflineStorage'
+import { useSavedTips } from './hooks/useSavedTips'
 
 export default function App() {
   const [categoryId, setCategoryId] = useState('guitarra')
@@ -14,9 +16,9 @@ export default function App() {
   const [tip, setTip] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const { saveTip, loadTip } = useOfflineStorage()
+  const { saveTip: cacheLastTip, loadTip } = useOfflineStorage()
+  const { saved, saveTip, removeTip, isSaved } = useSavedTips()
 
-  // Load tip from URL param (notification click) or offline storage
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const urlTip = params.get('tip')
@@ -25,15 +27,16 @@ export default function App() {
       window.history.replaceState({}, '', '/')
       return
     }
-    const saved = loadTip()
-    if (saved) {
-      setTip(saved.tip)
-      if (saved.categoryId) setCategoryId(saved.categoryId)
-      if (saved.difficulty) setDifficulty(saved.difficulty)
+    const cached = loadTip()
+    if (cached) {
+      setTip(cached.tip)
+      if (cached.categoryId) setCategoryId(cached.categoryId)
+      if (cached.difficulty) setDifficulty(cached.difficulty)
     }
   }, [loadTip])
 
   const category = CATEGORIES.find((c) => c.id === categoryId)
+  const difficultyLabel = { basic: 'Bàsic', intermediate: 'Intermedi', advanced: 'Avançat' }[difficulty]
 
   const handleGenerate = async () => {
     setLoading(true)
@@ -41,7 +44,7 @@ export default function App() {
     try {
       const result = await generateTip(categoryId, difficulty)
       setTip(result)
-      saveTip(result, categoryId, difficulty)
+      cacheLastTip(result, categoryId, difficulty)
     } catch (err) {
       setError(err.message || 'Error generant el tip. Comprova la connexió.')
     } finally {
@@ -49,7 +52,9 @@ export default function App() {
     }
   }
 
-  const difficultyLabel = { basic: 'Bàsic', intermediate: 'Intermedi', advanced: 'Avançat' }[difficulty]
+  const handleSave = () => {
+    if (tip) saveTip(tip, categoryId, difficulty)
+  }
 
   return (
     <div className="app">
@@ -67,17 +72,22 @@ export default function App() {
         <CategorySelector selected={categoryId} onSelect={setCategoryId} />
         <DifficultySelector selected={difficulty} onSelect={setDifficulty} />
 
-        <button
-          className="btn btn--generate"
-          onClick={handleGenerate}
-          disabled={loading}
-        >
+        <button className="btn btn--generate" onClick={handleGenerate} disabled={loading}>
           {loading ? 'Generant...' : '✨ Genera el meu tip'}
         </button>
 
         {error && <p className="app-error">{error}</p>}
 
-        <TipCard tip={tip} loading={loading} category={category} difficulty={difficultyLabel} />
+        <TipCard
+          tip={tip}
+          loading={loading}
+          category={category}
+          difficulty={difficultyLabel}
+          isSaved={tip ? isSaved(tip) : false}
+          onSave={handleSave}
+        />
+
+        <SavedTips saved={saved} onRemove={removeTip} />
 
         <NotificationSettings />
       </main>
