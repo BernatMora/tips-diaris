@@ -1,7 +1,7 @@
 import webpush from 'web-push'
 import Anthropic from '@anthropic-ai/sdk'
+import { list, put, del } from '@vercel/blob'
 import { CATEGORIES } from '../src/utils/categories.js'
-import { subscriptions } from './subscribe.js'
 
 webpush.setVapidDetails(
   process.env.VAPID_EMAIL,
@@ -10,21 +10,37 @@ webpush.setVapidDetails(
 )
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const BLOB_NAME = 'subscriptions.json'
+
+async function getSubscriptions() {
+  const { blobs } = await list({ prefix: BLOB_NAME })
+  if (!blobs.length) return []
+  const res = await fetch(blobs[0].url)
+  return res.json()
+}
+
+async function saveSubscriptions(subs) {
+  const { blobs } = await list({ prefix: BLOB_NAME })
+  await Promise.all(blobs.map((b) => del(b.url)))
+  await put(BLOB_NAME, JSON.stringify(subs), {
+    access: 'public',
+    contentType: 'application/json',
+    addRandomSuffix: false,
+  })
+}
 
 export default async function handler(req, res) {
-  // Vercel cron sends GET; allow GET and POST
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Mètode no permès' })
   }
 
-  if (!subscriptions.length) {
+  const subs = await getSubscriptions()
+  if (!subs.length) {
     return res.status(200).json({ ok: true, sent: 0, message: 'Sense subscriptors' })
   }
 
-  // Pick a random category and intermediate difficulty for the daily tip
   const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)]
-  const difficulty = 'intermediate'
-  const prompt = category.prompts[difficulty]
+  const prompt = category.prompts['intermediate']
 
   let tip
   try {
@@ -45,21 +61,22 @@ export default async function handler(req, res) {
     url: '/',
   })
 
+  const validSubs = []
   const results = await Promise.allSettled(
-    subscriptions.map((sub) =>
-      webpush.sendNotification(sub, payload).catch((err) => {
-        // Remove invalid subscriptions (410 Gone)
-        if (err.statusCode === 410) {
-          const idx = subscriptions.indexOf(sub)
-          if (idx !== -1) subscriptions.splice(idx, 1)
-        }
+    subs.map(async (sub) => {
+      try {
+        await webpush.sendNotification(sub, payload)
+        validSubs.push(sub)
+      } catch (err) {
+        if (err.statusCode !== 410) validSubs.push(sub) // keep if not expired
         throw err
-      })
-    )
+      }
+    })
   )
+
+  await saveSubscriptions(validSubs)
 
   const sent = results.filter((r) => r.status === 'fulfilled').length
   const failed = results.length - sent
-
   return res.status(200).json({ ok: true, sent, failed })
 }
