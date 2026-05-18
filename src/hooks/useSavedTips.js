@@ -1,34 +1,88 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 
-const KEY = 'tips-diaris-saved'
-const MAX = 50
+const LOCAL_KEY = 'tips-diaris-saved'
 
-function load() {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] }
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]') } catch { return [] }
 }
 
-function save(tips) {
-  try { localStorage.setItem(KEY, JSON.stringify(tips)) } catch {}
+function saveLocal(tips) {
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(tips)) } catch {}
 }
 
 export function useSavedTips() {
-  const [saved, setSaved] = useState(load)
+  const [saved, setSaved] = useState(loadLocal)
+  const [syncing, setSyncing] = useState(false)
+  const syncedRef = useRef(false)
 
-  useEffect(() => { save(saved) }, [saved])
-
-  const saveTip = useCallback((tip, category, difficulty) => {
-    setSaved((prev) => {
-      const entry = { id: Date.now(), tip, category, difficulty, date: new Date().toISOString() }
-      const filtered = prev.filter((t) => t.tip !== tip) // no duplicats
-      return [entry, ...filtered].slice(0, MAX)
-    })
+  // Carrega del servidor en muntar (una sola vegada)
+  useEffect(() => {
+    if (syncedRef.current) return
+    syncedRef.current = true
+    fetch('/api/saved-tips')
+      .then((r) => r.ok ? r.json() : null)
+      .then((serverTips) => {
+        if (Array.isArray(serverTips)) {
+          setSaved(serverTips)
+          saveLocal(serverTips)
+        }
+      })
+      .catch(() => {})
   }, [])
 
-  const removeTip = useCallback((id) => {
-    setSaved((prev) => prev.filter((t) => t.id !== id))
+  const saveTip = useCallback(async (tip, category, difficulty) => {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/saved-tips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save', tip, category, difficulty }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setSaved(updated)
+        saveLocal(updated)
+      }
+    } catch {
+      // offline: desa localment
+      setSaved((prev) => {
+        const entry = { id: Date.now(), tip, category, difficulty, date: new Date().toISOString() }
+        const filtered = prev.filter((t) => t.tip !== tip)
+        const updated = [entry, ...filtered].slice(0, 50)
+        saveLocal(updated)
+        return updated
+      })
+    } finally {
+      setSyncing(false)
+    }
+  }, [])
+
+  const removeTip = useCallback(async (id) => {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/saved-tips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'remove', id }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setSaved(updated)
+        saveLocal(updated)
+      }
+    } catch {
+      // offline: elimina localment
+      setSaved((prev) => {
+        const updated = prev.filter((t) => t.id !== id)
+        saveLocal(updated)
+        return updated
+      })
+    } finally {
+      setSyncing(false)
+    }
   }, [])
 
   const isSaved = useCallback((tip) => saved.some((t) => t.tip === tip), [saved])
 
-  return { saved, saveTip, removeTip, isSaved }
+  return { saved, saveTip, removeTip, isSaved, syncing }
 }
