@@ -1,8 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import { CATEGORIES, buildPrompt } from '../src/utils/categories.js'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY })
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -24,11 +23,14 @@ export default async function handler(req, res) {
   const prompt = buildPrompt(category, difficulty, topic || null)
 
   try {
-    const result = await model.generateContent(prompt)
-    const tip = result.response.text().trim()
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    })
+    const tip = result.text.trim()
     return res.status(200).json({ tip })
   } catch (err) {
-    console.error('Google AI error:', err)
+    console.error('Google AI error:', err.message || err)
     return res.status(500).json({ error: 'Error generant el tip' })
   }
 }

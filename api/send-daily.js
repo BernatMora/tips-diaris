@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import { list, put, del } from '@vercel/blob'
 import { CATEGORIES, buildPrompt } from '../src/utils/categories.js'
 
@@ -9,8 +9,7 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 )
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY })
 const BLOB_NAME = 'subscriptions.json'
 
 async function getSubscriptions() {
@@ -56,8 +55,11 @@ export default async function handler(req, res) {
     catIds.map(async (catId) => {
       const cat = CATEGORIES.find((c) => c.id === catId)
       try {
-        const result = await model.generateContent(buildPrompt(cat, 'intermediate'))
-        tipByCategory[catId] = result.response.text().trim()
+        const result = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: buildPrompt(cat, 'intermediate'),
+        })
+        tipByCategory[catId] = result.text.trim()
       } catch (err) {
         console.error('Error generant tip per', catId, err)
       }
