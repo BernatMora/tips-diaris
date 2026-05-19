@@ -22,7 +22,7 @@ export function useSavedTips() {
     fetch('/api/saved-tips')
       .then((r) => r.ok ? r.json() : null)
       .then((serverTips) => {
-        if (Array.isArray(serverTips)) {
+        if (Array.isArray(serverTips) && serverTips.length > 0) {
           setSaved(serverTips)
           saveLocal(serverTips)
         }
@@ -42,9 +42,11 @@ export function useSavedTips() {
         const updated = await res.json()
         setSaved(updated)
         saveLocal(updated)
+      } else {
+        throw new Error('server-error')
       }
     } catch {
-      // offline: desa localment
+      // offline o error del servidor: desa localment
       setSaved((prev) => {
         const entry = { id: Date.now(), tip, category, difficulty, date: new Date().toISOString() }
         const filtered = prev.filter((t) => t.tip !== tip)
@@ -69,9 +71,11 @@ export function useSavedTips() {
         const updated = await res.json()
         setSaved(updated)
         saveLocal(updated)
+      } else {
+        throw new Error('server-error')
       }
     } catch {
-      // offline: elimina localment
+      // offline o error del servidor: elimina localment
       setSaved((prev) => {
         const updated = prev.filter((t) => t.id !== id)
         saveLocal(updated)
