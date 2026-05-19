@@ -24,14 +24,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Mètode no permès' })
   }
 
-  const { subscription } = req.body || {}
+  const { subscription, categories } = req.body || {}
   if (!subscription?.endpoint) {
     return res.status(400).json({ error: 'Subscripció invàlida' })
   }
 
   const subs = await getSubscriptions()
-  const exists = subs.some((s) => s.endpoint === subscription.endpoint)
-  if (!exists) subs.push(subscription)
+  const idx = subs.findIndex((s) => s.endpoint === subscription.endpoint)
+  const record = { ...subscription, ...(categories?.length ? { categories } : { categories: null }) }
+
+  if (idx === -1) {
+    subs.push(record)
+  } else {
+    subs[idx] = { ...subs[idx], ...record }
+  }
+
   await saveSubscriptions(subs)
 
   return res.status(200).json({ ok: true, total: subs.length })

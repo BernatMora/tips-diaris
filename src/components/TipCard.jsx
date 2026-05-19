@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-export default function TipCard({ tip, loading, category, difficulty, isSaved, onSave }) {
+const canShare = typeof navigator !== 'undefined' && !!navigator.share
+
+export default function TipCard({ tip, loading, category, difficulty, isSaved, onSave, rating, onRate }) {
+  const [shared, setShared] = useState(false)
   if (loading) {
     return (
       <div className="tip-card tip-card--loading">
@@ -42,6 +45,48 @@ export default function TipCard({ tip, loading, category, difficulty, isSaved, o
         </button>
       </div>
       <p className="tip-card__tip">{tip}</p>
+      <div className="tip-card__actions">
+        {canShare && (
+          <button
+            className={`tip-card__share ${shared ? 'tip-card__share--done' : ''}`}
+            onClick={async () => {
+              try {
+                await navigator.share({
+                  title: `${category?.icon} Tip de ${category?.nom}`,
+                  text: tip,
+                })
+                setShared(true)
+                setTimeout(() => setShared(false), 2000)
+              } catch {}
+            }}
+            aria-label="Compartir tip"
+            title="Compartir"
+          >
+            {shared ? '✓' : '↑'}
+          </button>
+        )}
+        <button
+          className={`tip-card__rate ${rating === 'up' ? 'tip-card__rate--up' : ''}`}
+          onClick={() => onRate(tip, 'up')}
+          aria-label="M'agrada"
+          title="M'agrada"
+        >
+          👍
+        </button>
+        <button
+          className={`tip-card__rate ${rating === 'down' ? 'tip-card__rate--down' : ''}`}
+          onClick={() => onRate(tip, 'down')}
+          aria-label="No m'agrada"
+          title="No m'agrada"
+        >
+          👎
+        </button>
+        {rating && (
+          <span className="tip-card__rate-label">
+            {rating === 'up' ? 'Útil!' : 'No era el que buscava'}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

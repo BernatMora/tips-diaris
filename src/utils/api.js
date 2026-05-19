@@ -1,8 +1,8 @@
-export async function generateTip(categoryId, difficulty) {
+export async function generateTip(categoryId, difficulty, topic = null) {
   const res = await fetch('/api/generate-tip', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ categoryId, difficulty }),
+    body: JSON.stringify({ categoryId, difficulty, topic }),
   })
   if (!res.ok) throw new Error('Error generant el tip')
   const data = await res.json()
@@ -16,11 +16,11 @@ export async function getVapidPublicKey() {
   return data.publicKey
 }
 
-export async function saveSubscription(subscription) {
+export async function saveSubscription(subscription, categories = null) {
   const res = await fetch('/api/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ subscription }),
+    body: JSON.stringify({ subscription, categories }),
   })
   if (!res.ok) throw new Error('Error desant la subscripció')
   return res.json()

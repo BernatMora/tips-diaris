@@ -9,6 +9,8 @@ import { CATEGORIES } from './utils/categories'
 import { generateTip } from './utils/api'
 import { useOfflineStorage } from './hooks/useOfflineStorage'
 import { useSavedTips } from './hooks/useSavedTips'
+import { useTopicHistory } from './hooks/useTopicHistory'
+import { useTipRatings } from './hooks/useTipRatings'
 
 export default function App() {
   const [categoryId, setCategoryId] = useState('guitarra')
@@ -18,6 +20,8 @@ export default function App() {
   const [error, setError] = useState(null)
   const { saveTip: cacheLastTip, loadTip } = useOfflineStorage()
   const { saved, saveTip, removeTip, isSaved } = useSavedTips()
+  const { pickTopic } = useTopicHistory()
+  const { rateTip, getRating } = useTipRatings()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -42,7 +46,8 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const result = await generateTip(categoryId, difficulty)
+      const topic = pickTopic(categoryId, difficulty)
+      const result = await generateTip(categoryId, difficulty, topic)
       setTip(result)
       cacheLastTip(result, categoryId, difficulty)
     } catch (err) {
@@ -85,6 +90,8 @@ export default function App() {
           difficulty={difficultyLabel}
           isSaved={tip ? isSaved(tip) : false}
           onSave={handleSave}
+          rating={tip ? getRating(tip) : null}
+          onRate={rateTip}
         />
 
         <SavedTips saved={saved} onRemove={removeTip} />

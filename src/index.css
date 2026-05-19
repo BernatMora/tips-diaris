@@ -309,10 +309,49 @@ body {
 }
 .saved-tip-card__remove:hover { color: var(--accent); background: rgba(233,69,96,0.1); }
 
+/* Tip card actions (rating) */
+.tip-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.tip-card__rate {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.625rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  opacity: 0.55;
+  line-height: 1.4;
+}
+.tip-card__rate:hover { opacity: 1; border-color: var(--text-muted); }
+.tip-card__rate--up { border-color: #34d399; background: rgba(52, 211, 153, 0.12); opacity: 1; }
+.tip-card__rate--down { border-color: var(--accent); background: rgba(233, 69, 96, 0.12); opacity: 1; }
+.tip-card__rate-label { font-size: 0.78rem; color: var(--text-muted); margin-left: 0.25rem; }
+.tip-card__share {
+  margin-left: auto;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.625rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  line-height: 1.4;
+}
+.tip-card__share:hover { border-color: var(--accent); color: var(--text); }
+.tip-card__share--done { border-color: #34d399; color: #34d399; background: rgba(52, 211, 153, 0.12); }
+
 /* Notification settings */
 .notification-settings { display: flex; flex-direction: column; gap: 0.75rem; }
 .notification-settings__desc { color: var(--text-muted); font-size: 0.875rem; }
-.notification-settings__active { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.notification-settings__active { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .notification-settings__badge {
   background: rgba(52, 211, 153, 0.15);
   color: #34d399;
@@ -324,6 +363,43 @@ body {
 }
 .notification-settings__error { color: #ff8fa3; font-size: 0.825rem; }
 .notification-settings__unsupported { color: var(--text-muted); font-size: 0.875rem; }
+
+/* Category selector per a notificacions */
+.notif-categories { display: flex; flex-direction: column; gap: 0.5rem; }
+.notif-categories__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.notif-categories__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.375rem;
+}
+.notif-category-check {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.625rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.notif-category-check:hover { border-color: var(--text-muted); color: var(--text); }
+.notif-category-check--active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(233, 69, 96, 0.1);
+}
+.notif-category-check__icon { font-size: 0.85rem; }
 
 /* Install prompt */
 .install-prompt {

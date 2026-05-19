@@ -1,11 +1,18 @@
 import { useState, useCallback } from 'react'
 import { getVapidPublicKey, saveSubscription, urlBase64ToUint8Array } from '../utils/api'
 
+const CATEGORIES_KEY = 'notif-categories'
+
+function loadSavedCategories() {
+  try { return JSON.parse(localStorage.getItem(CATEGORIES_KEY)) }
+  catch { return null }
+}
+
 export function usePushNotifications() {
   const [status, setStatus] = useState('idle') // idle | loading | granted | denied | error
   const [error, setError] = useState(null)
 
-  const subscribe = useCallback(async () => {
+  const subscribe = useCallback(async (categories = null) => {
     setStatus('loading')
     setError(null)
 
@@ -28,7 +35,13 @@ export function usePushNotifications() {
         applicationServerKey,
       })
 
-      await saveSubscription(subscription.toJSON())
+      if (categories?.length) {
+        localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
+      } else {
+        localStorage.removeItem(CATEGORIES_KEY)
+      }
+
+      await saveSubscription(subscription.toJSON(), categories)
       setStatus('granted')
       return true
     } catch (err) {
@@ -43,8 +56,28 @@ export function usePushNotifications() {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
       if (sub) await sub.unsubscribe()
+      localStorage.removeItem(CATEGORIES_KEY)
       setStatus('idle')
     } catch {}
+  }, [])
+
+  const updateCategories = useCallback(async (categories) => {
+    setError(null)
+    try {
+      const reg = await navigator.serviceWorker.ready
+      const sub = await reg.pushManager.getSubscription()
+      if (!sub) return false
+      if (categories?.length) {
+        localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
+      } else {
+        localStorage.removeItem(CATEGORIES_KEY)
+      }
+      await saveSubscription(sub.toJSON(), categories)
+      return true
+    } catch (err) {
+      setError(err.message)
+      return false
+    }
   }, [])
 
   const checkStatus = useCallback(async () => {
@@ -61,5 +94,5 @@ export function usePushNotifications() {
     }
   }, [])
 
-  return { status, error, subscribe, unsubscribe, checkStatus }
+  return { status, error, subscribe, unsubscribe, updateCategories, checkStatus, loadSavedCategories }
 }

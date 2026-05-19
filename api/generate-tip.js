@@ -1,14 +1,15 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { CATEGORIES } from '../src/utils/categories.js'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { CATEGORIES, buildPrompt } from '../src/utils/categories.js'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Mètode no permès' })
   }
 
-  const { categoryId, difficulty } = req.body || {}
+  const { categoryId, difficulty, topic } = req.body || {}
 
   const category = CATEGORIES.find((c) => c.id === categoryId)
   if (!category) {
@@ -20,19 +21,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Dificultat invàlida' })
   }
 
-  const prompt = category.prompts[difficulty]
+  const prompt = buildPrompt(category, difficulty, topic || null)
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 512,
-      messages: [{ role: 'user', content: prompt }],
-    })
-
-    const tip = message.content[0].text.trim()
+    const result = await model.generateContent(prompt)
+    const tip = result.response.text().trim()
     return res.status(200).json({ tip })
   } catch (err) {
-    console.error('Anthropic error:', err)
+    console.error('Google AI error:', err)
     return res.status(500).json({ error: 'Error generant el tip' })
   }
 }
