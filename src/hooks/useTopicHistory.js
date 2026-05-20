@@ -16,18 +16,19 @@ export function useTopicHistory() {
     const allTopics = category.topics[difficulty]
     const key = `${categoryId}-${difficulty}`
     const history = loadHistory()
-    const seen = history[key] || []
+    const rawSeen = history[key]
+    const currentSeen = Array.isArray(rawSeen) ? rawSeen : []
 
     // If we've seen all topics, reset the history to start a new cycle
-    if (seen.length >= allTopics.length) {
+    if (currentSeen.length >= allTopics.length) {
       history[key] = []
     }
 
-    const currentSeen = history[key]
     const unseen = allTopics.filter((t) => !currentSeen.includes(t))
     const topic = unseen[Math.floor(Math.random() * unseen.length)]
 
-    history[key] = [...currentSeen, topic]
+    const nextSeen = history[key]
+    history[key] = [...(Array.isArray(nextSeen) ? nextSeen : []), topic]
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
 
     return topic
