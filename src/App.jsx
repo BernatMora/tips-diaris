@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import CategorySelector from './components/CategorySelector'
 import DifficultySelector from './components/DifficultySelector'
 import TipCard from './components/TipCard'
+import TipExplainModal from './components/TipExplainModal'
 import NotificationSettings from './components/NotificationSettings'
 import InstallPrompt from './components/InstallPrompt'
 import SavedTips from './components/SavedTips'
+import Recommendations from './components/Recommendations'
 import ScrollToTop from './components/ScrollToTop'
 import Toast from './components/Toast'
 import { CATEGORIES } from './utils/categories'
@@ -13,6 +15,7 @@ import { useOfflineStorage } from './hooks/useOfflineStorage'
 import { useSavedTips } from './hooks/useSavedTips'
 import { useTopicHistory } from './hooks/useTopicHistory'
 import { useTipRatings } from './hooks/useTipRatings'
+import { useRecommendations } from './hooks/useRecommendations'
 
 export default function App() {
   const [categoryId, setCategoryId] = useState('guitarra')
@@ -26,6 +29,7 @@ export default function App() {
   const { saved, saveTip, removeTip, isSaved, syncing, clearAllTips } = useSavedTips()
   const { pickTopic } = useTopicHistory()
   const { rateTip, getRating } = useTipRatings()
+  const { recommendations, trackVisit, skipRecommendation, getCategoryById } = useRecommendations()
 
   // Track if the current tip matches the selected category/difficulty
   const [tipContext, setTipContext] = useState(null)
@@ -90,6 +94,8 @@ export default function App() {
   const category = CATEGORIES.find((c) => c.id === categoryId)
   const difficultyLabel = { basic: 'Bàsic', intermediate: 'Intermedi', advanced: 'Avançat' }[difficulty]
 
+  const [explainTip, setExplainTip] = useState(null) // { tip, category, difficulty }
+
   const handleGenerate = async () => {
     setLoading(true)
     setError(null)
@@ -99,6 +105,7 @@ export default function App() {
       setTip(result)
       cacheLastTip(result, categoryId, difficulty)
       setTipContext({ categoryId, difficulty })
+      trackVisit(categoryId)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
       // If offline, try loading cached tip
@@ -165,6 +172,17 @@ export default function App() {
           </p>
         )}
 
+        <Recommendations
+          recommendations={recommendations}
+          getCategoryById={getCategoryById}
+          onSelectCategory={(catId) => {
+            setCategoryId(catId)
+            trackVisit(catId)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+          onSkip={skipRecommendation}
+        />
+
         <TipCard
           tip={tip}
           loading={loading}
@@ -178,6 +196,7 @@ export default function App() {
             rateTip(tipText, value)
             showToast(value === 'up' ? 'Valorat com a útil!' : 'Gràcies pel feedback!', 'info')
           }}
+          onExplain={() => tip && setExplainTip({ tip, category, difficulty })}
         />
 
         {tip && !loading && (
@@ -190,6 +209,15 @@ export default function App() {
 
         <NotificationSettings />
       </main>
+
+      {explainTip && (
+        <TipExplainModal
+          tip={explainTip.tip}
+          category={explainTip.category}
+          difficulty={explainTip.difficulty}
+          onClose={() => setExplainTip(null)}
+        />
+      )}
 
       <footer className="app-footer">
         <p>Generat amb IA · Tips Diaris</p>

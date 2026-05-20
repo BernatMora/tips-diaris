@@ -9,6 +9,17 @@ export async function generateTip(categoryId, difficulty, topic = null) {
   return data.tip
 }
 
+export async function explainTip(tip, category, difficulty) {
+  const res = await fetch('/api/explain-tip', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tip, category, difficulty }),
+  })
+  if (!res.ok) throw new Error('Error generant l\'explicació')
+  const data = await res.json()
+  return data.explanation
+}
+
 export async function getVapidPublicKey() {
   const res = await fetch('/api/vapid-public-key')
   if (!res.ok) throw new Error('Error obtenint la clau VAPID')
