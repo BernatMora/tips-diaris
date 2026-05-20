@@ -219,6 +219,35 @@ body {
   color: var(--accent);
 }
 .tip-card__tip { color: var(--text); font-size: 0.95rem; line-height: 1.65; }
+.tip-card__sections { display: flex; flex-direction: column; gap: 0.875rem; }
+.tip-card__section-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.3rem;
+}
+.tip-card__exemple {
+  background: rgba(136, 146, 164, 0.08);
+  border-left: 3px solid var(--border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.tip-card__exemple .tip-card__section-label { color: var(--text-muted); }
+.tip-card__repte {
+  background: rgba(233, 69, 96, 0.08);
+  border: 1.5px solid rgba(233, 69, 96, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.55;
+}
+.tip-card__repte .tip-card__section-label { color: var(--accent); }
 .tip-card__save {
   margin-left: auto;
   background: transparent;

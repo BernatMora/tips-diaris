@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
+import { parseTip } from '../utils/parseTip'
 
 const canShare = typeof navigator !== 'undefined' && !!navigator.share
 
 export default function TipCard({ tip, loading, category, difficulty, isSaved, onSave, rating, onRate }) {
   const [shared, setShared] = useState(false)
+
   if (loading) {
     return (
       <div className="tip-card tip-card--loading">
@@ -27,6 +29,8 @@ export default function TipCard({ tip, loading, category, difficulty, isSaved, o
     )
   }
 
+  const parsed = parseTip(tip)
+
   return (
     <div className="tip-card">
       <div className="tip-card__header">
@@ -44,7 +48,23 @@ export default function TipCard({ tip, loading, category, difficulty, isSaved, o
           {isSaved ? '★' : '☆'}
         </button>
       </div>
-      <p className="tip-card__tip">{tip}</p>
+
+      {parsed.plain ? (
+        <p className="tip-card__tip">{parsed.plain}</p>
+      ) : (
+        <div className="tip-card__sections">
+          <p className="tip-card__tip">{parsed.consell}</p>
+          <div className="tip-card__exemple">
+            <span className="tip-card__section-label">Exemple pràctic</span>
+            <p>{parsed.exemple}</p>
+          </div>
+          <div className="tip-card__repte">
+            <span className="tip-card__section-label">🎯 Repte del dia</span>
+            <p>{parsed.repte}</p>
+          </div>
+        </div>
+      )}
+
       <div className="tip-card__actions">
         {canShare && (
           <button
