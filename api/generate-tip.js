@@ -1,7 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk'
 import { CATEGORIES, buildPrompt } from '../src/utils/categories.js'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openai/gpt-oss-120b:free'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -23,15 +22,27 @@ export default async function handler(req, res) {
   const prompt = buildPrompt(category, difficulty, topic || null)
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     })
-    const tip = message.content[0].text.trim()
+    const data = await response.json()
+    if (!response.ok || data.error) {
+      console.error('OpenRouter API error:', JSON.stringify(data))
+      return res.status(500).json({ error: 'Error de l\'API: ' + (data.error?.message || response.status) })
+    }
+    const tip = data.choices[0].message.content.trim()
     return res.status(200).json({ tip })
   } catch (err) {
-    console.error('Anthropic error:', err.message || err)
+    console.error('OpenRouter error:', err.message || err)
     return res.status(500).json({ error: 'Error generant el tip' })
   }
 }

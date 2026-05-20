@@ -1,5 +1,4 @@
 import webpush from 'web-push'
-import Anthropic from '@anthropic-ai/sdk'
 import { list, put, del } from '@vercel/blob'
 import { CATEGORIES, buildPrompt } from '../src/utils/categories.js'
 
@@ -9,7 +8,7 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 )
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openai/gpt-oss-120b:free'
 const BLOB_NAME = 'subscriptions.json'
 
 async function getSubscriptions() {
@@ -55,12 +54,20 @@ export default async function handler(req, res) {
     catIds.map(async (catId) => {
       const cat = CATEGORIES.find((c) => c.id === catId)
       try {
-        const message = await client.messages.create({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
-          messages: [{ role: 'user', content: buildPrompt(cat, 'intermediate') }],
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: OPENROUTER_MODEL,
+            max_tokens: 1024,
+            messages: [{ role: 'user', content: buildPrompt(cat, 'intermediate') }],
+          }),
         })
-        tipByCategory[catId] = message.content[0].text.trim()
+        const data = await response.json()
+        tipByCategory[catId] = data.choices[0].message.content.trim()
       } catch (err) {
         console.error('Error generant tip per', catId, err)
       }
