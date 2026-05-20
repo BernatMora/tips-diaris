@@ -3,7 +3,7 @@ import { parseTip } from '../utils/parseTip'
 
 const canShare = typeof navigator !== 'undefined' && !!navigator.share
 
-export default function TipCard({ tip, loading, category, difficulty, isSaved, onSave, rating, onRate }) {
+export default function TipCard({ tip, loading, loadingMessage, category, difficulty, isSaved, onSave, rating, onRate }) {
   const [shared, setShared] = useState(false)
 
   if (loading) {
@@ -14,7 +14,7 @@ export default function TipCard({ tip, loading, category, difficulty, isSaved, o
           <span className="tip-loading__dot" />
           <span className="tip-loading__dot" />
         </div>
-        <p className="tip-loading__text">Generant el teu tip...</p>
+        <p className="tip-loading__text">{loadingMessage || 'Generant el teu tip...'}</p>
       </div>
     )
   }

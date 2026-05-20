@@ -86,7 +86,29 @@ export function useSavedTips() {
     }
   }, [])
 
+  const clearAllTips = useCallback(async () => {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/saved-tips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear' }),
+      })
+      if (res.ok) {
+        setSaved([])
+        saveLocal([])
+      } else {
+        throw new Error('server-error')
+      }
+    } catch {
+      setSaved([])
+      saveLocal([])
+    } finally {
+      setSyncing(false)
+    }
+  }, [])
+
   const isSaved = useCallback((tip) => saved.some((t) => t.tip === tip), [saved])
 
-  return { saved, saveTip, removeTip, isSaved, syncing }
+  return { saved, saveTip, removeTip, isSaved, syncing, clearAllTips }
 }

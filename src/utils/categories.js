@@ -727,19 +727,52 @@ export const DIFFICULTIES = [
   { id: 'advanced', label: 'Avançat' },
 ]
 
-const FORMAT_INSTRUCTION = `
+function getFormatInstruction(difficulty) {
+  if (difficulty === 'basic') {
+    return `
 
 Respon SEMPRE amb aquest format exacte, sense cap text addicional fora d'ell:
 
-**Consell:** [escriu aquí el consell principal en 2-4 frases]
+**Consell:** [escriu aquí el consell principal en 2-4 frases clares i motivadores]
 
 **Exemple pràctic:** [un exemple concret i accionable en 1-2 frases]
 
-**Repte del dia:** [una acció específica que es pugui fer avui, en 1 frase]`
+**Repte del dia:** [una acció específica que es pugui fer avui, en 1 frase]
+
+Total: entre 4 i 7 frases en total. Sigues concís i directe.`
+  }
+
+  if (difficulty === 'intermediate') {
+    return `
+
+Respon SEMPRE amb aquest format exacte, sense cap text addicional fora d'ell:
+
+**Consell:** [escriu aquí el consell principal en 3-5 frases amb detalls tècnics i matisos]
+
+**Exemple pràctic:** [un exemple concret i detallat en 2-3 frases]
+
+**Repte del dia:** [una acció específica i mesurable que es pugui fer avui, en 1-2 frases que inclogui un objectiu concret]
+
+Total: entre 6 i 10 frases. Dona profunditat sense ser excessiu.`
+  }
+
+  // advanced
+  return `
+
+Respon SEMPRE amb aquest format exacte, sense cap text addicional fora d'ell:
+
+**Consell:** [escriu aquí el consell principal en 4-6 frases amb context científic, tècnic o estratègic. Explica per què funciona]
+
+**Exemple pràctic:** [un exemple detallat i tècnic en 2-4 frases que il·lustri el consell]
+
+**Repte del dia:** [una acció específica, mesurable i amb criteri tècnic, en 1-2 frases]
+
+Total: entre 7 i 12 frases. Pots aprofundir amb evidències, mecanismes i matisos. Sigues rigorós.`
+}
 
 export function buildPrompt(category, difficulty, topic = null) {
   const chosen = topic ?? category.topics[difficulty][
     Math.floor(Math.random() * category.topics[difficulty].length)
   ]
-  return category.prompts[difficulty].replace('{topic}', chosen) + FORMAT_INSTRUCTION
+  return category.prompts[difficulty].replace('{topic}', chosen) + getFormatInstruction(difficulty)
 }

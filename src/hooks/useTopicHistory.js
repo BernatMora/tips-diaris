@@ -18,11 +18,16 @@ export function useTopicHistory() {
     const history = loadHistory()
     const seen = history[key] || []
 
-    const unseen = allTopics.filter((t) => !seen.includes(t))
-    const pool = unseen.length > 0 ? unseen : allTopics
-    const topic = pool[Math.floor(Math.random() * pool.length)]
+    // If we've seen all topics, reset the history to start a new cycle
+    if (seen.length >= allTopics.length) {
+      history[key] = []
+    }
 
-    history[key] = unseen.length > 0 ? [...seen, topic] : [topic]
+    const currentSeen = history[key]
+    const unseen = allTopics.filter((t) => !currentSeen.includes(t))
+    const topic = unseen[Math.floor(Math.random() * unseen.length)]
+
+    history[key] = [...currentSeen, topic]
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
 
     return topic

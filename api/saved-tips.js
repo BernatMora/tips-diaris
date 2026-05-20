@@ -45,6 +45,11 @@ export default async function handler(req, res) {
       return res.status(200).json(updated)
     }
 
+    if (action === 'clear') {
+      await persistTips([])
+      return res.status(200).json([])
+    }
+
     return res.status(400).json({ error: 'Acció desconeguda' })
   }
 
