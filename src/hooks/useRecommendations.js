@@ -14,8 +14,8 @@ function loadSkipped() {
 }
 
 export function useRecommendations(ratings = {}) {
-  const [visits, setVisits] = useState(loadVisits)
-  const [skipped, setSkipped] = useState(loadSkipped)
+  const [visits, setVisits] = useState(() => loadVisits())
+  const [skipped, setSkipped] = useState(() => loadSkipped())
 
   const trackVisit = useCallback((categoryId) => {
     setVisits((prev) => {

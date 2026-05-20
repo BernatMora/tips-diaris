@@ -2,7 +2,8 @@ import React from 'react'
 import { CATEGORIES } from '../utils/categories'
 
 export default function Recommendations({ recommendations, getCategoryById, onSelectCategory, onSkip }) {
-  const hasAny = recommendations.explore.length > 0 || recommendations.revisit.length > 0 || recommendations.favorites.length > 0
+  const recs = recommendations || { explore: [], revisit: [], favorites: [], skipped: [] }
+  const hasAny = recs.explore.length > 0 || recs.revisit.length > 0 || recs.favorites.length > 0
 
   if (!hasAny) return null
 
@@ -13,11 +14,11 @@ export default function Recommendations({ recommendations, getCategoryById, onSe
         Basades en les categories que més visites
       </p>
 
-      {recommendations.favorites.length > 0 && (
+      {recs.favorites.length > 0 && (
         <div className="recommendations__group">
           <h3 className="recommendations__group-title">🔥 Les teves preferides</h3>
           <div className="recommendations__list">
-            {recommendations.favorites.map((catId) => {
+            {recs.favorites.map((catId) => {
               const cat = CATEGORIES.find((c) => c.id === catId)
               if (!cat) return null
               return (
@@ -31,11 +32,11 @@ export default function Recommendations({ recommendations, getCategoryById, onSe
         </div>
       )}
 
-      {recommendations.explore.length > 0 && (
+      {recs.explore.length > 0 && (
         <div className="recommendations__group">
           <h3 className="recommendations__group-title">🌱 Per explorar</h3>
           <div className="recommendations__list">
-            {recommendations.explore.map((catId) => {
+            {recs.explore.map((catId) => {
               const cat = CATEGORIES.find((c) => c.id === catId)
               if (!cat) return null
               return (
@@ -50,11 +51,11 @@ export default function Recommendations({ recommendations, getCategoryById, onSe
         </div>
       )}
 
-      {recommendations.revisit.length > 0 && (
+      {recs.revisit.length > 0 && (
         <div className="recommendations__group">
           <h3 className="recommendations__group-title">🔄 Per redescobrir</h3>
           <div className="recommendations__list">
-            {recommendations.revisit.map((catId) => {
+            {recs.revisit.map((catId) => {
               const cat = CATEGORIES.find((c) => c.id === catId)
               if (!cat) return null
               return (
