@@ -30,6 +30,7 @@ export default function App() {
   const { pickTopic } = useTopicHistory()
   const { rateTip, getRating } = useTipRatings()
   const { recommendations, trackVisit, skipRecommendation, getCategoryById } = useRecommendations()
+  const [explainTip, setExplainTip] = useState(null) // { tip, category, difficulty }
 
   // Track if the current tip matches the selected category/difficulty
   const [tipContext, setTipContext] = useState(null)
@@ -93,8 +94,6 @@ export default function App() {
 
   const category = CATEGORIES.find((c) => c.id === categoryId)
   const difficultyLabel = { basic: 'Bàsic', intermediate: 'Intermedi', advanced: 'Avançat' }[difficulty]
-
-  const [explainTip, setExplainTip] = useState(null) // { tip, category, difficulty }
 
   const handleGenerate = async () => {
     setLoading(true)
@@ -172,17 +171,6 @@ export default function App() {
           </p>
         )}
 
-        <Recommendations
-          recommendations={recommendations}
-          getCategoryById={getCategoryById}
-          onSelectCategory={(catId) => {
-            setCategoryId(catId)
-            trackVisit(catId)
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-          }}
-          onSkip={skipRecommendation}
-        />
-
         <TipCard
           tip={tip}
           loading={loading}
@@ -208,6 +196,17 @@ export default function App() {
         <SavedTips saved={saved} onRemove={removeTip} syncing={syncing} clearAll={clearAllTips} showToast={showToast} />
 
         <NotificationSettings />
+
+        <Recommendations
+          recommendations={recommendations}
+          getCategoryById={getCategoryById}
+          onSelectCategory={(catId) => {
+            setCategoryId(catId)
+            trackVisit(catId)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+          onSkip={skipRecommendation}
+        />
       </main>
 
       {explainTip && (

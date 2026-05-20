@@ -13,9 +13,11 @@ function loadSkipped() {
   catch { return [] }
 }
 
-export function useRecommendations(ratings = {}) {
+export function useRecommendations() {
   const [visits, setVisits] = useState(() => loadVisits())
   const [skipped, setSkipped] = useState(() => loadSkipped())
+
+  const safeSkipped = Array.isArray(skipped) ? skipped : []
 
   const trackVisit = useCallback((categoryId) => {
     setVisits((prev) => {
@@ -28,7 +30,8 @@ export function useRecommendations(ratings = {}) {
 
   const skipRecommendation = useCallback((categoryId) => {
     setSkipped((prev) => {
-      const next = [...prev, categoryId]
+      const safe = Array.isArray(prev) ? prev : []
+      const next = [...safe, categoryId]
       localStorage.setItem('tip-skipped-categories', JSON.stringify(next))
       return next
     })
@@ -36,28 +39,30 @@ export function useRecommendations(ratings = {}) {
 
   const resetSkip = useCallback((categoryId) => {
     setSkipped((prev) => {
-      const next = prev.filter((id) => id !== categoryId)
+      const safe = Array.isArray(prev) ? prev : []
+      const next = safe.filter((id) => id !== categoryId)
       localStorage.setItem('tip-skipped-categories', JSON.stringify(next))
       return next
     })
   }, [])
 
   const recommendations = useMemo(() => {
-    const visitedIds = Object.keys(visits).sort((a, b) => visits[b] - visits[a])
-    const allCategoryIds = CATEGORIES.map((c) => c.id)
-    const unexplored = allCategoryIds.filter((id) => !visits[id])
-    const exploredButLess = allCategoryIds.filter((id) => visits[id] && visits[id] < 3 && !skipped.includes(id))
+    const safeVisits = visits || {}
+    const safeSkip = Array.isArray(skipped) ? skipped : []
 
-    // Sort explored by visit count (most visited first)
-    const explored = visitedIds.filter((id) => visits[id] >= 3)
+    const visitedIds = Object.keys(safeVisits).sort((a, b) => safeVisits[b] - safeVisits[a])
+    const allCategoryIds = CATEGORIES.map((c) => c.id)
+    const unexplored = allCategoryIds.filter((id) => !safeVisits[id])
+    const exploredButLess = allCategoryIds.filter((id) => safeVisits[id] && safeVisits[id] < 3 && !safeSkip.includes(id))
+    const explored = visitedIds.filter((id) => safeVisits[id] >= 3)
 
     return {
-      explore: unexplored.slice(0, 2),         // Categories never visited
-      revisit: exploredButLess.slice(0, 2),     // Categories with < 3 visits
-      favorites: explored.slice(0, 2),          // Categories with 3+ visits
-      skipped: skipped,
+      explore: unexplored.slice(0, 2),
+      revisit: exploredButLess.slice(0, 2),
+      favorites: explored.slice(0, 2),
+      skipped: safeSkip,
     }
-  }, [visits, ratings, skipped])
+  }, [visits, skipped])
 
   const getCategoryById = useCallback((id) => CATEGORIES.find((c) => c.id === id), [])
 
